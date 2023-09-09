@@ -5,13 +5,17 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PreDestroy;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
+
+import static com.game.constants.SQLConstants.*;
 
 @Repository(value = "db")
 public class PlayerRepositoryDB implements IPlayerRepository {
@@ -19,8 +23,16 @@ public class PlayerRepositoryDB implements IPlayerRepository {
     private final SessionFactory sessionFactory;
 
     public PlayerRepositoryDB() {
+        Properties properties = new Properties();
+        properties.put(Environment.URL, DB_URL);
+        properties.put(Environment.DRIVER, DB_DRIVER);
+        properties.put(Environment.USER, DB_USER);
+        properties.put(Environment.PASS, DB_PASSWORD);
+        properties.put(Environment.DIALECT, DB_DIALECT);
+        properties.put(Environment.HBM2DDL_AUTO, UPDATE);
+
         sessionFactory = new Configuration()
-                .configure()
+                .setProperties(properties)
                 .addAnnotatedClass(Player.class)
                 .buildSessionFactory();
     }
@@ -40,7 +52,7 @@ public class PlayerRepositoryDB implements IPlayerRepository {
     @Override
     public int getAllCount() {
         try (Session session = sessionFactory.openSession()) {
-            return session.createNativeQuery("SELECT COUNT(*) FROM player", Integer.class).getFirstResult();
+            return session.createNativeQuery("SELECT * FROM player", Player.class).list().size();
         }
     }
 
